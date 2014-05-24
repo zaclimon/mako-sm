@@ -349,13 +349,13 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 
 
-KERNELFLAGS  = -O2 -mtune=cortex-a15 -mfpu=neon -fgcse-las -fpredictive-commoning
+KERNELFLAGS  = -O2 -DNDEBUG -munaligned-access -fgcse-lm -fgcse-sm -fsingle-precision-constant -fforce-addr -fsched-spec-load -mtune=cortex-a15 -marm -mfpu=neon -ftree-vectorize -fpredictive-commoning -ffast-math $(GRAPHITE_FLAGS)
 MODFLAGS  = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS) -fno-pic
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
 CFLAGS_KERNEL  = $(KERNELFLAGS)
-CFLAGS_KERNEL	+= -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
+GRAPHITE_FLAGS  = -fgraphite -floop-parallelize-all -ftree-loop-linear -floop-interchange -floop-strip-mine -floop-block
 AFLAGS_KERNEL  = $(KERNELFLAGS)
 CFLAGS_GCOV     = -fprofile-arcs -ftest-coverage
 
@@ -368,12 +368,16 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common \
-		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
-		   -Wno-sizeof-pointer-memaccess \
-		   -fno-delete-null-pointer-checks
+KBUILD_CFLAGS   := -Wall -DNDEBUG -Wundef -Wstrict-prototypes -Wno-trigraphs \
+                   -fno-strict-aliasing -fno-common \
+                   -Werror-implicit-function-declaration \
+                   -Wno-format-security \
+                   -Wno-sizeof-pointer-memaccess \
+                   -fno-delete-null-pointer-checks \
+ 		   -fpredictive-commoning -fgcse-after-reload \
+                   -fmodulo-sched -fmodulo-sched-allow-regmoves \
+		   -mtune=cortex-a15 -mfpu=neon \
+		   $(GRAPHITE_FLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
