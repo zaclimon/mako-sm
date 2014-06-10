@@ -3061,6 +3061,9 @@ typedef struct
   /*Self Station MAC address*/
   wpt_macAddr selfMacAddr;
 
+  /*Self STA device mode*/
+  wpt_uint32 currDeviceMode;
+
   /*Status of the operation*/
   wpt_uint32  uStatus;
 }WDI_AddSTASelfInfoType;
@@ -4589,6 +4592,9 @@ typedef struct
 
   /* Beacon Early Termination Interval */
   wpt_uint32 uBETInterval; 
+
+  /* MAX LI for modulated DTIM */
+  wpt_uint32 uMaxLIModulatedDTIM;
 
 } WDI_SetPowerParamsInfo;
 
@@ -9475,17 +9481,16 @@ WDI_UpdateVHTOpModeReq
     Or if host driver detects any abnormal stcuk may display
 
  @param  displaySnapshot : Display DXE snapshot option
- @param  debugFlags      : Enable stall detect features
-                           defined by WPAL_DeviceDebugFlags
-                           These features may effect
-                           data performance.
+ @param  enableStallDetect : Enable stall detect feature
+                        This feature will take effect to data performance
+                        Not integrate till fully verification
  @see
  @return none
 */
 void WDI_TransportChannelDebug
 (
    wpt_boolean  displaySnapshot,
-   wpt_uint8    debugFlags
+   wpt_boolean  toggleStallDetect
 );
 
 /**
