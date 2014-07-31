@@ -1,20 +1,36 @@
-
+#!/bin/bash
 export CROSS_COMPILE="$HOME/sm-arm-eabi-4.9/bin/arm-eabi-"
-KERNEL_DIRECTORY="$HOME/franco-mako"
+KERNEL_DIRECTORY="$HOME/mako-sm"
+ANYKERNEL_DIRECTORY="$HOME/anykernel_msm"
+JOBS=`grep -c "processor" /proc/cpuinfo`
+
+if [[ "$1" =~ "cm" || "$1" =~ "CM" ]] ; then
+git checkout sm-4.4-sm
+zipfile="franco.Kernel-SaberMod-r209f-CM.zip"
+else
+git checkout sm-4.4
+zipfile="franco.Kernel-SaberMod-r209f.zip"
+fi
+
+
+cd $ANYKERNEL_DIRECTORY
+git checkout mako
+
+cd $KERNEL_DIRECTORY
+
+if [ -e zip/*.zip ] ; then
+rm -rf zip/*
+fi
 
 make franco_defconfig
-make -j16
+make -j$JOBS
 
-cd $HOME/anykernel_mako
+cd $ANYKERNEL_DIRECTORY
 cp -r * $KERNEL_DIRECTORY/zip/
 cd $KERNEL_DIRECTORY
 cp arch/arm/boot/zImage zip/tmp/anykernel
 
-zipfile="franco.Kernel-sm-r209.zip"
 echo "making zip file"
  
 cd zip/
-rm -f *.zip
 zip -r $zipfile *
-rm -f /tmp/*.zip
-cp *.zip /tmp
