@@ -147,6 +147,9 @@ static unsigned int up_threshold_any_cpu_load = 65;
 static unsigned int sync_freq = CPU_SYNC_FREQ;
 static unsigned int up_threshold_any_cpu_freq = 1100000;
 
+#define DOWN_LOW_LOAD_THRESHOLD 5
+static bool idle_notifier = false;
+
 static void cpufreq_interactive_timer_resched(
 	struct cpufreq_interactive_cpuinfo *pcpu)
 {
@@ -322,7 +325,7 @@ static unsigned int choose_freq(
 	return freq;
 }
 
-static unsigned int calc_freq(struct cpufreq_interactive_cpuinfo *pcpu, 
+static unsigned int calc_freq(struct cpufreq_interactive_cpuinfo *pcpu,
 	unsigned int load)
 {
 	unsigned int max = pcpu->policy->max;
@@ -407,6 +410,9 @@ static void cpufreq_interactive_timer(unsigned long data)
 			if (new_freq < hispeed_freq)
 				new_freq = hispeed_freq;
 		}
+	}
+	else if (cpu_load <= DOWN_LOW_LOAD_THRESHOLD) {
+		new_freq = pcpu->policy->cpuinfo.min_freq;
 	}
 	else
 	{
@@ -520,7 +526,7 @@ rearm_if_notmax:
 	 * Already set max speed and don't see a need to change that,
 	 * wait until next idle to re-evaluate, don't need timer.
 	 */
-	if (pcpu->target_freq == pcpu->policy->max)
+	if (idle_notifier && pcpu->target_freq == pcpu->policy->max)
 		goto exit;
 
 rearm:
@@ -1245,8 +1251,13 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 					&thread_migration_nb);
 
 		idle_notifier_register(&cpufreq_interactive_idle_nb);
-		cpufreq_register_notifier(
-			&cpufreq_notifier_block, CPUFREQ_TRANSITION_NOTIFIER);
+
+		if (idle_notifier)
+		{
+			cpufreq_register_notifier(
+				&cpufreq_notifier_block, CPUFREQ_TRANSITION_NOTIFIER);
+		}
+
 		mutex_unlock(&gov_lock);
 		break;
 
@@ -1271,8 +1282,12 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 				&migration_notifier_head,
 				&thread_migration_nb);
 
-		cpufreq_unregister_notifier(
-			&cpufreq_notifier_block, CPUFREQ_TRANSITION_NOTIFIER);
+		if (idle_notifier)
+		{
+			cpufreq_unregister_notifier(
+				&cpufreq_notifier_block, CPUFREQ_TRANSITION_NOTIFIER);
+		}
+
 		idle_notifier_unregister(&cpufreq_interactive_idle_nb);
 		sysfs_remove_group(cpufreq_global_kobject,
 				&interactive_attr_group);
