@@ -1248,12 +1248,9 @@ static int msm_otg_usbdev_notify(struct notifier_block *self,
 	 * ACA dock can supply IDEV_CHG irrespective devices connected
 	 * on the accessory port.
 	 */
-
-	// do not cause required code to be skipped -ziddey
-	// will not switch to a_host or charge otherwise
-	/*if (!udev->parent || udev->parent->parent ||
+	if (!udev->parent || udev->parent->parent ||
 			motg->chg_type == USB_ACA_DOCK_CHARGER)
-		goto out;*/
+		goto out;
 
 	switch (action) {
 	case USB_DEVICE_ADD:
@@ -3048,8 +3045,6 @@ static void msm_otg_set_vbus_state(int online)
 	struct usb_otg *otg = motg->phy.otg;
 
 	// need BSV interrupt in A Host Mode to detect cable unplug -ziddey
-	//struct usb_otg *otg = motg->phy.otg;
-
 	/* In A Host Mode, ignore received BSV interrupts */
 	if (!otg_hack_active)
 		if (otg->phy->state >= OTG_STATE_A_IDLE)
@@ -3191,43 +3186,39 @@ static ssize_t msm_otg_mode_write(struct file *file, const char __user *ubuf,
 		goto out;
 	}
 
-	// always force req_mode, and use ID_A instead of ID for host mode -ziddey
 	switch (req_mode) {
 	case USB_NONE:
-		/*switch (phy->state) {
+		switch (phy->state) {
 		case OTG_STATE_A_HOST:
 		case OTG_STATE_B_PERIPHERAL:
-			set_bit(ID, &motg->inputs);*/
-			clear_bit(ID_A, &motg->inputs);
+			set_bit(ID, &motg->inputs);
 			clear_bit(B_SESS_VLD, &motg->inputs);
 			break;
-		/*default:
+		default:
 			goto out;
 		}
-		break;*/
+		break;
 	case USB_PERIPHERAL:
-		/*switch (phy->state) {
+		switch (phy->state) {
 		case OTG_STATE_B_IDLE:
 		case OTG_STATE_A_HOST:
-			set_bit(ID, &motg->inputs);*/
-			clear_bit(ID_A, &motg->inputs);
+			set_bit(ID, &motg->inputs);
 			set_bit(B_SESS_VLD, &motg->inputs);
 			break;
-		/*default:
+		default:
 			goto out;
 		}
-		break;*/
+		break;
 	case USB_HOST:
-		/*switch (phy->state) {
+		switch (phy->state) {
 		case OTG_STATE_B_IDLE:
 		case OTG_STATE_B_PERIPHERAL:
-			clear_bit(ID, &motg->inputs);*/
-			set_bit(ID_A, &motg->inputs);
+			clear_bit(ID, &motg->inputs);
 			break;
-		/*default:
+		default:
 			goto out;
 		}
-		break;*/
+		break;
 	default:
 		goto out;
 	}
@@ -3392,9 +3383,8 @@ static int msm_otg_debugfs_init(struct msm_otg *motg)
 	if (!msm_otg_dbg_root || IS_ERR(msm_otg_dbg_root))
 		return -ENODEV;
 
-	// enable /sys/kernel/debug/msm_otg/host -ziddey
-	if (motg->pdata->mode == USB_OTG /*&&
-		motg->pdata->otg_control == OTG_USER_CONTROL*/) {
+	if (motg->pdata->mode == USB_OTG &&
+		motg->pdata->otg_control == OTG_USER_CONTROL) {
 
 		msm_otg_dentry = debugfs_create_file("mode", S_IRUGO |
 			S_IWUSR, msm_otg_dbg_root, motg,
