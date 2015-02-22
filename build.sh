@@ -6,10 +6,10 @@ JOBS=`grep -c "processor" /proc/cpuinfo`
 
 if [[ "$1" =~ "cm" || "$1" =~ "CM" ]] ; then
 git checkout sm-5.0-cm
-zipfile="franco.Kernel-SaberMod-r216-CM.zip"
+zipfile="franco.Kernel-SaberMod-r216.2-CM.zip"
 else
 git checkout sm-5.0
-zipfile="franco.Kernel-SaberMod-r216.zip"
+zipfile="franco.Kernel-SaberMod-r216.2.zip"
 fi
 
 
